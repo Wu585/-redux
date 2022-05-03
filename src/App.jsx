@@ -20,7 +20,7 @@ function App() {
 }
 
 const OneSon = () => <section>大儿子 <User/></section>
-const TwoSon = () => <section>二儿子 <Wrapper/></section>
+const TwoSon = () => <section>二儿子 <UserModifier>内容</UserModifier></section> // 这里相当于调用函数传参，参数是children
 const ThreeSon = () => <section>小儿子</section>
 
 const User = () => {
@@ -40,14 +40,18 @@ const reducer = (state, {type, payload}) => {
     return state
   }
 }
-const Wrapper = () => {
-  const {appState, setAppState} = useContext(appContext)
-  const dispatch = (action) => {
-    setAppState(reducer(appState, action))
+const connect = (Component) => {
+  // 这里props透传写法原因：用的时候，写在组件上的属性相当于调用这个返回的函数，然后传参
+  return (props) => {
+    const {appState, setAppState} = useContext(appContext)
+    const dispatch = (action) => {
+      setAppState(reducer(appState, action))
+    }
+    return <Component {...props} dispatch={dispatch} state={appState}/>
   }
-  return <UserModifier dispatch={dispatch} state={appState}/>
 }
-const UserModifier = ({dispatch, state}) => {
+
+const UserModifier = connect(({dispatch, state, children}) => {
   const onChange = (e) => {
     dispatch({
       type: 'updateUser', payload: {
@@ -56,9 +60,10 @@ const UserModifier = ({dispatch, state}) => {
     })
   }
   return <div>
+    {children}
     <input type="text" value={state.user.name}
            onChange={onChange}/>
   </div>
-}
+})
 
 export default App;
